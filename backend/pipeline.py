@@ -1,7 +1,3 @@
-"""
-pipeline.py — Orchestrates the full Umoja pipeline:
-  Input (text or audio) → [STT] → Summarise → Translate → TTS → Output
-"""
 import os
 import tempfile
 from pathlib import Path
@@ -58,7 +54,7 @@ def run_pipeline(
     }
 
     try:
-        # ── Step 1: Get source text ─────────────────────────────────────────
+        #  Step 1: Get source text
         if audio_path:
             duration = get_audio_duration(audio_path)
             if duration > AUDIO_MAX_SECONDS:
@@ -80,7 +76,7 @@ def run_pipeline(
         if not source_text.strip():
             raise ValueError("Could not extract any text from the audio. Please try a clearer recording.")
 
-        # ── Step 2: Summarise ───────────────────────────────────────────────
+        # Step 2: Summarise 
         # Prepend format instruction so Sunflower shapes the summary correctly
         format_hint = (
             "Write this as a short news bulletin. " if story_format == "News Bulletin"
@@ -94,14 +90,14 @@ def run_pipeline(
         except Exception as e:
             raise Exception(f"Summarisation step failed: {str(e)}")
 
-        # ── Step 3: Translate ───────────────────────────────────────────────
+        #  Step 3: Translate 
         try:
             translation = translate_text(summary, target_language)
             result["translation"] = translation
         except Exception as e:
             raise Exception(f"Translation step failed: {str(e)}")
 
-        # ── Step 4: TTS ─────────────────────────────────────────────────────
+        #  Step 4: TTS 
         try:
             audio_url = synthesise_speech(translation, target_language)
             result["audio_url"] = audio_url
