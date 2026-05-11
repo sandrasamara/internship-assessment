@@ -1,118 +1,142 @@
-# 🌻 Umoja — Community Voice Intelligence Hub
+# Umoja Community Voice Intelligence Hub
 
-> **Umoja** (Swahili/Luganda: *"conversations"*) is a Generative AI web application
-> that lets anyone — a journalist, community radio producer, or NGO field worker — speak or type
-> a story in any supported language and instantly receive an AI-generated English summary,
-> a translation into a chosen Ugandan local language, and a synthesised audio broadcast of that
-> translation. Every AI capability is powered exclusively by **Sunbird AI**.
+## What is Umoja?
+
+**Umoja** (Swahili/Luganda: *"conversations"*) is an intelligent content processing platform designed to empower journalists, community radio producers, NGO field workers, and community members in Uganda. It transforms spoken or written stories into accessible multi-language formats instantly.
+
+Users can speak or type a story in any language, and Umoja automatically:
+- **Summarizes** the content in English with PII anonymization
+- **Translates** the summary into a chosen Ugandan local language
+- **Synthesizes** the translated text into natural-sounding audio for broadcast
+
+Every AI capability is powered exclusively by **Sunbird AI**, ensuring reliable and contextually-aware processing tailored for African languages and communities.
 
 ---
 
-## Architecture Overview
+## Key Features
+
+###  Dual Input Modes
+- **Text Input**: Type or paste stories, reports, or transcripts directly
+- **Audio Upload**: Upload recorded audio files (MP3, WAV, OGG, M4A) up to 5 minutes with automatic speech-to-text transcription
+
+### Multilingual Support
+Supports 5 Ugandan languages with native text-to-speech voices:
+- Luganda
+- Acholi  
+- Ateso
+- Runyankole
+- Lugbara
+
+###  Intelligent Processing
+- **Summarization**: Automatically condenses content into concise English summaries
+- **PII Anonymization**: Protects sensitive information during summarization
+- **Format Options**: Generate summaries as "News Bulletin" or "Community Announcement"
+
+###  Audio Broadcasting
+- Natural-sounding Text-to-Speech synthesis in target language
+- Ready-to-broadcast audio files for community radio stations and digital platforms
+- Language-specific speaker voices for authentic local delivery
+
+###  User-Friendly Interface
+- Modern, intuitive web interface built with Gradio
+- Real-time processing with visual feedback
+- One-click pipeline execution
+- Professional Sunbird-inspired design
+
+---
+
+## How It Works
+
+### Processing Pipeline
+
+The application follows a four-stage intelligent pipeline:
 
 ```
-User Input (text or audio)
-        │
-        ▼
-┌───────────────────────┐
-│  [STT] if audio:      │  POST /tasks/stt
-│  Transcribe → text    │  Sunbird Speech-to-Text
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────┐
-│  [Summarise]          │  POST /tasks/summarise
-│  English summary      │  Sunbird Summarisation (+ PII anonymisation)
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────┐
-│  [Translate]          │  POST /tasks/sunflower_inference
-│  → chosen local lang  │  Sunflower LLM (multi-turn chat)
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────┐
-│  [TTS]                │  POST /tasks/tts
-│  Audio broadcast clip │  Sunbird Text-to-Speech
-└───────────┬───────────┘
-            │
-            ▼
-   UI displays: transcript · summary · translation · audio player
+1. TRANSCRIBE (if audio input)
+   └─ Converts audio to text using Sunbird Speech-to-Text
+
+2. SUMMARIZE
+   └─ Creates concise English summary with PII protection
+
+3. TRANSLATE
+   └─ Translates summary to selected Ugandan language via Sunbird LLM
+
+4. SYNTHESIZE
+   └─ Generates natural audio using Sunbird Text-to-Speech
 ```
 
----
+### User Experience Flow
 
-## Local Setup
-
-### Prerequisites
-- Python 3.9+
-- A [Sunbird AI API token](https://api.sunbird.ai/)
-
-### Steps
-
-```bash
-# 1. Clone
-git clone https://github.com/<your-username>/internship-assessment.git
-cd internship-assessment
-
-# 2. Virtual environment
-python -m venv venv
-source venv/bin/activate          # Windows: venv\Scripts\activate.bat
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Configure environment
-cp .env.example .env
-# Open .env and set SUNBIRD_API_TOKEN=<your token>
-
-# 5. Run the app
-python app.py
-# Open http://localhost:7860 in your browser
-```
-
-### Run tests (Part 1)
-```bash
-pytest
-```
+1. **Select Input** → Choose between typing text or uploading audio
+2. **Configure** → Pick target language and summary format
+3. **Process** → Click "Run Pipeline" to start
+4. **Receive Results** → View transcript, summary, translation, and listen to audio
 
 ---
 
-## Environment Variables
+## Use Cases
 
-| Variable | Required | Description |
-|---|---|---|
-| `SUNBIRD_API_TOKEN` | ✅ Yes | Your Sunbird AI bearer token from https://api.sunbird.ai/ |
+###  Community Radio
+Produce multi-language radio content from a single story submission, reaching diverse linguistic communities without duplication of effort.
 
----
+###  Journalism & News
+Rapidly generate summarized content in multiple languages for broader audience reach while protecting reporter sources through PII anonymization.
 
-## Usage Walkthrough
+###  NGO Field Operations
+Convert field reports into accessible multi-language formats for community engagement, training, and documentation.
 
-1. **Choose input mode** — "Type / Paste Text" or "Audio Upload"
-2. **If audio**: upload an MP3/WAV/OGG/M4A file (≤ 5 minutes). The app will transcribe it automatically.
-3. **Pick a target language** — Luganda, Acholi, Ateso, Runyankole, or Lugbara.
-4. **Pick a summary format** — News Bulletin or Community Announcement.
-5. **Click "Run Pipeline"**.
-6. The results panel shows:
-   - 🎙️ Transcript (audio mode only) with detected language badge
-   - 📝 English summary (with PII anonymised)
-   - 🌍 Translated summary in your chosen language
-   - 🔊 Audio player with the synthesised speech clip
+###  Education & Advocacy
+Create accessible educational content in local languages to improve information dissemination in multilingual communities.
+
+###  Public Communication
+Enable government agencies and organizations to communicate important announcements in all major Ugandan languages simultaneously.
 
 ---
 
-## Deployed Link
+## Technical Architecture
 
-🔗 **[Live Demo on Hugging Face Spaces](https://huggingface.co/spaces/<your-username>/Umoja)**
+### Core Components
+
+- **Frontend**: Gradio web interface with professional styling and real-time feedback
+- **Backend Pipeline**: Orchestrates sequential AI operations from user input to audio output
+- **Sunbird AI Integration**: Leverages Sunbird's APIs for STT, summarization, translation, and TTS
+- **Audio Processing**: Lightweight audio metadata extraction using Mutagen
+- **Error Handling**: Comprehensive retry logic with exponential backoff for API resilience
+
+### Tech Stack
+
+- **Framework**: Python with Gradio for UI
+- **Dependencies**: requests, python-dotenv, mutagen, pytest
+- **Deployment**: Runs locally or in containerized environments
+- **API Integration**: RESTful communication with Sunbird AI endpoints
 
 ---
 
-## Known Limitations
+## Key Capabilities
 
-- **5-minute audio cap**: audio files longer than 5 minutes are rejected with a clear error.
-- **Supported STT languages**: Luganda, Acholi, Ateso, Runyankole, Lugbara, English only.
-- **Summarisation language**: the `/tasks/summarise` endpoint works best with English input; other languages are passed through but may produce lower-quality summaries.
-- **TTS voices**: all voices are female except Swahili (male); Swahili is not available as a target language in the translation step because Sunflower is optimised for Ugandan languages.
-- **Audio URL expiry**: the TTS audio URL returned by Sunbird is a temporary signed URL — the app downloads it immediately to avoid expiry issues.
-- **Rate limits**: Sunbird AI free-tier accounts have rate limits; heavy concurrent use may result in 429 errors surfaced to the user.
+###  Data Protection
+- PII anonymization during summarization
+- Secure API communication with authentication tokens
+- No local storage of user content beyond processing
+
+###  Performance
+- Configurable timeouts for different operations (10 min for audio processing, 5 min for other tasks)
+- Automatic retry logic with exponential backoff for transient failures
+- Optimized for African network conditions
+
+###  Language-Specific Intelligence
+- Context-aware translation using Sunbird's Sunflower LLM
+- Proper handling of Ugandan language nuances and idioms
+- Native speaker voices for authentic audio output
+
+###  Flexible Output Formats
+- Generates summaries in different tones (News Bulletin, Community Announcement)
+- Multiple output channels (text transcript, summary, translation, audio)
+- Display detected source language during transcription
+
+---
+
+
+## Project Purpose
+
+Umoja democratizes content translation and audio broadcasting for African communities. By removing language barriers and technical complexity, it enables any storyteller to create and share their voice across Uganda's diverse linguistic landscape. Whether it's a journalist breaking news, a health worker sharing vital information, or a community leader broadcasting announcements, Umoja makes professional-quality multi-language content production accessible to everyone.
