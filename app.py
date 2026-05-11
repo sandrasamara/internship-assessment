@@ -1,7 +1,3 @@
-"""
-app.py — Umoja: Community Voice Intelligence Hub
-Powered by Sunbird AI APIs.
-"""
 import os
 import tempfile
 import requests
@@ -246,7 +242,6 @@ body, .gradio-container {
 
 def process(input_mode, text_input, audio_input, target_language, story_format):
     """Gradio callback — runs the pipeline and returns UI-friendly outputs."""
-
     # Validate token
     if not os.environ.get("SUNBIRD_API_TOKEN", "").strip():
         err = "SUNBIRD_API_TOKEN is not set. Add it to your .env file and restart."
@@ -334,7 +329,7 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
     )
 
 
-# ── Build UI ───────────────────────────────────────────────────────────────
+# Build UI 
 with gr.Blocks(title="Umoja") as demo:
 
     gr.HTML(f"""
@@ -382,8 +377,7 @@ with gr.Blocks(title="Umoja") as demo:
                 label="Summary format",
             )
 
-            # Note: We can't use HTML in button label directly through gr.Button label, 
-            # but we can pass a string without emojis. The premium look is handled via CSS.
+            
             run_btn = gr.Button("Run Pipeline", variant="primary", size="lg")
 
         with gr.Column(scale=1):
@@ -411,14 +405,14 @@ with gr.Blocks(title="Umoja") as demo:
                 elem_classes="custom-audio-player"
             )
 
-    # ── Wire up visibility toggle ──────────────────────────────────────────
+    # Wire up visibility toggle 
     def toggle_input(mode):
         is_audio = "Audio" in mode
         return gr.update(visible=not is_audio), gr.update(visible=is_audio)
 
     input_mode.change(toggle_input, inputs=input_mode, outputs=[text_group, audio_group])
 
-    # ── Show loading state, then run process ─────────────────────────────────
+    #  Show loading state, then run process
     def show_loading():
         """Pre-processing callback to show loading indicator."""
         return (
@@ -431,8 +425,7 @@ with gr.Blocks(title="Umoja") as demo:
             gr.update(visible=False),  # audio_player
         )
     
-    # Click shows loading, then chains to process which shows results.
-    # Note show_progress="hidden" prevents Gradio's built-in spinner from showing on top of ours.
+    
     run_btn.click(
         fn=show_loading,
         outputs=[
