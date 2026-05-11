@@ -1,5 +1,7 @@
 # Umoja Community Voice Intelligence Hub
 
+### Link **https://huggingface.co/spaces/samasandy/Umoja**
+
 ## What is Umoja?
 
 **Umoja** (Swahili/Luganda: *"conversations"*) is an intelligent content processing platform designed to empower journalists, community radio producers, NGO field workers, and community members in Uganda. It transforms spoken or written stories into accessible multi-language formats instantly.
