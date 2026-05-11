@@ -107,7 +107,6 @@ body, .gradio-container {
     box-sizing: border-box;
 }
 
-/* Responsive loading container for smaller screens */
 @media (max-width: 768px) {
     .loading-container {
         padding: 60px 24px;
@@ -116,7 +115,6 @@ body, .gradio-container {
     }
 }
 
-/* Single elegant spinner */
 .spinner {
     width: 72px;
     height: 72px;
@@ -168,7 +166,6 @@ body, .gradio-container {
     }
 }
 
-/* Loading text styling */
 .loading-text {
     font-size: 20px;
     font-weight: 700;
@@ -344,7 +341,6 @@ body, .gradio-container {
     color: #f87171 !important;
 }
 
-/* Hide gradio text inputs if any */
 .hide-empty:empty {
     display: none;
 }
@@ -353,6 +349,7 @@ body, .gradio-container {
 
 def process(input_mode, text_input, audio_input, target_language, story_format):
     """Gradio callback — runs the pipeline and returns UI-friendly outputs."""
+
     # Validate token
     if not os.environ.get("SUNBIRD_API_TOKEN", "").strip():
         err = "SUNBIRD_API_TOKEN is not set. Add it to your .env file and restart."
@@ -360,12 +357,11 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
         return (
             gr.update(value=error_html),
             gr.update(visible=False),
-            gr.update(visible=False),
             gr.update(value=""),
             gr.update(value=""),
             gr.update(value=""),
             gr.update(value=""),
-            gr.update(visible=False),
+            gr.update(value=None, visible=False),
             gr.update(interactive=True),
         )
 
@@ -373,7 +369,7 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
 
     result = run_pipeline(
         input_text=text_input if not use_audio else None,
-        audio_path=audio_input  if use_audio else None,
+        audio_path=audio_input if use_audio else None,
         target_language=target_language,
         story_format=story_format,
     )
@@ -383,73 +379,71 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
         return (
             gr.update(value=error_html),
             gr.update(visible=False),
-            gr.update(visible=False),
             gr.update(value=""),
             gr.update(value=""),
             gr.update(value=""),
             gr.update(value=""),
-            gr.update(visible=False),
+            gr.update(value=None, visible=False),
             gr.update(interactive=True),
         )
 
-    # Build transcript panel
+    # ── Build each result panel ────────────────────────────────────────────
+    transcript_html = ""
     if result["transcript"]:
         transcript_html = (
-            f"<div class='result-header'>{ICONS['transcript']} Transcript <i>(detected: {result['detected_language']})</i></div>"
+            f"<div class='result-header'>{ICONS['transcript']} Transcript "
+            f"<i>(detected: {result['detected_language']})</i></div>"
             f"<div class='result-content-transcript'>{result['transcript']}</div>"
         )
-    else:
-        transcript_html = ""
 
-    # Build summary html
     summary_html = (
         f"<div class='result-header'>{ICONS['summary']} English Summary</div>"
         f"<div class='result-content'>{result['summary']}</div>"
     )
 
-    # Build translation html
     translation_html = (
         f"<div class='result-header'>{ICONS['translation']} Translated to {target_language}</div>"
         f"<div class='result-content'>{result['translation']}</div>"
     )
 
-    # Download the audio and pass as file path so Gradio can play it
+    # Download TTS audio so Gradio can serve it locally (signed URLs expire)
     audio_file_path = None
     if result["audio_url"]:
         try:
             r = requests.get(result["audio_url"], timeout=30)
             r.raise_for_status()
             with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
-                tmp.write(r.content);
+                tmp.write(r.content)
                 audio_file_path = tmp.name
         except Exception as e:
             print(f"Error downloading audio: {e}")
-            pass  # audio player will just be empty
 
+    audio_label_html = ""
     if audio_file_path:
-        audio_label_html = f"<div class='audio-label'>{ICONS['speaker']} Listen in {target_language}</div>"
-    else:
-        audio_label_html = ""
+        audio_label_html = (
+            f"<div class='audio-label'>{ICONS['speaker']} Listen in {target_language}</div>"
+        )
 
-    # Success message
-    success_html = f"<div class='status-message status-success'>{ICONS['check']} <div>Successfully processed! All results are below.</div></div>"
+    success_html = (
+        f"<div class='status-message status-success'>"
+        f"{ICONS['check']} <div>Successfully processed! All results are below.</div></div>"
+    )
 
-    # Return tuple in order of outputs: (status_box, loading_col, results_col, transcript_box, summary_box, translation_box, audio_label, audio_player, run_btn)
+    # Return order must match OUTPUTS list exactly
     return (
-        gr.update(value=success_html),  # status_box
-        gr.update(visible=False),  # loading_col
-        gr.update(visible=True),   # results_col
-        gr.update(value=transcript_html),  # transcript_box
-        gr.update(value=summary_html),  # summary_box
-        gr.update(value=translation_html),  # translation_box
-        gr.update(value=audio_label_html),  # audio_label
+        gr.update(value=success_html),                                          # status_box
+        gr.update(visible=False),                                               # loading_col
+        gr.update(value=transcript_html),                                       # transcript_box
+        gr.update(value=summary_html),                                          # summary_box
+        gr.update(value=translation_html),                                      # translation_box
+        gr.update(value=audio_label_html),                                      # audio_label
         gr.update(value=audio_file_path, visible=audio_file_path is not None),  # audio_player
-        gr.update(interactive=True),  # run_btn
+        gr.update(interactive=True),                                            # run_btn
     )
 
 
-# Build UI 
-with gr.Blocks(title="Umoja") as demo:
+# ── Build UI ───────────────────────────────────────────────────────────────
+with gr.Blocks(title="Umoja", css=CUSTOM_CSS) as demo:
 
     gr.HTML(f"""
     <div id="title-banner">
@@ -462,6 +456,7 @@ with gr.Blocks(title="Umoja") as demo:
     """)
 
     with gr.Row():
+        # ── LEFT COLUMN ────────────────────────────────────────────────────
         with gr.Column(scale=1):
             gr.Markdown("### ① Choose your input")
             input_mode = gr.Radio(
@@ -496,77 +491,81 @@ with gr.Blocks(title="Umoja") as demo:
                 label="Summary format",
             )
 
-            
             run_btn = gr.Button("Run Pipeline", variant="primary", size="lg")
 
+        # ── RIGHT COLUMN ───────────────────────────────────────────────────
         with gr.Column(scale=1):
             gr.Markdown("### ③ Results")
-            status_box = gr.HTML("<div style='color: var(--text-muted); padding-top: 10px;'><em>Results will appear here after you click Run.</em></div>")
-            
-            # Loading indicator (shown during processing)
+
+            status_box = gr.HTML(
+                "<div style='color: var(--text-muted); padding-top: 10px;'>"
+                "<em>Results will appear here after you click Run.</em></div>"
+            )
+
+            # Loading spinner — toggled visible/hidden only
             with gr.Column(visible=False) as loading_col:
-                gr.HTML(
-                    """<div class="loading-container">
-                       <div class="spinner"></div>
-                       <div class="loading-text">Processing your content...</div>
-                       <div class="loading-subtext">This may take a moment ......</div>
-                       </div>"""
-                )
+                gr.HTML("""
+                <div class="loading-container">
+                  <div class="spinner"></div>
+                  <div class="loading-text">Processing your content...</div>
+                  <div class="loading-subtext">This may take a moment ......</div>
+                </div>
+                """)
 
-            with gr.Column(visible=False) as results_col:
-                transcript_box = gr.HTML(elem_classes="hide-empty")
-                summary_box = gr.HTML(elem_classes="hide-empty")
-                translation_box = gr.HTML(elem_classes="hide-empty")
-                audio_label = gr.HTML(elem_classes="hide-empty")
-                audio_player = gr.Audio(
-                    visible=False, 
-                    interactive=False,
-                    type="filepath",
-                    elem_classes="custom-audio-player"
-                )
+            # Result panels — always present in the DOM; content updated via gr.update
+            # The .hide-empty CSS class hides them when content is an empty string
+            transcript_box  = gr.HTML(value="", elem_classes="hide-empty")
+            summary_box     = gr.HTML(value="", elem_classes="hide-empty")
+            translation_box = gr.HTML(value="", elem_classes="hide-empty")
+            audio_label     = gr.HTML(value="", elem_classes="hide-empty")
+            audio_player    = gr.Audio(
+                visible=False,
+                interactive=False,
+                type="filepath",
+                elem_classes="custom-audio-player",
+            )
 
-    # Wire up visibility toggle 
+    # ── Input mode toggle ──────────────────────────────────────────────────
     def toggle_input(mode):
         is_audio = "Audio" in mode
         return gr.update(visible=not is_audio), gr.update(visible=is_audio)
 
     input_mode.change(toggle_input, inputs=input_mode, outputs=[text_group, audio_group])
 
-    #  Show loading state, then run process
+    # ── Loading state shown immediately on button click ────────────────────
     def show_loading():
-        """Pre-processing callback to show loading indicator with enhanced styling."""
         return (
-            gr.update(value="<div style='text-align:center; color:var(--text-muted); padding: 8px 0; opacity: 0.9;'></div>"),  # status_box
-            gr.update(visible=True),   # loading_col
-            gr.update(visible=False),  # results_col
-            gr.update(interactive=False) # run_btn
+            gr.update(value=""),          # clear status_box
+            gr.update(visible=True),      # show loading_col
+            gr.update(value=""),          # clear transcript_box
+            gr.update(value=""),          # clear summary_box
+            gr.update(value=""),          # clear translation_box
+            gr.update(value=""),          # clear audio_label
+            gr.update(value=None, visible=False),  # hide audio_player
+            gr.update(interactive=False), # disable run_btn while processing
         )
-    
-    
+
+    # Single source of truth for output order — used by both .click and .then
+    OUTPUTS = [
+        status_box,
+        loading_col,
+        transcript_box,
+        summary_box,
+        translation_box,
+        audio_label,
+        audio_player,
+        run_btn,
+    ]
+
     run_btn.click(
         fn=show_loading,
-        outputs=[
-            status_box,
-            loading_col,
-            results_col,
-            run_btn
-        ],
-        show_progress="hidden"
+        outputs=OUTPUTS,
+        show_progress="hidden",
     ).then(
         fn=process,
         inputs=[input_mode, text_input, audio_input, target_language, story_format],
-        outputs=[
-            status_box, 
-            loading_col,
-            results_col,
-            transcript_box, 
-            summary_box, 
-            translation_box, 
-            audio_label, 
-            audio_player, 
-            run_btn
-        ],
-        show_progress="hidden"
+        outputs=OUTPUTS,
+        show_progress="hidden",
     )
 
     gr.Markdown(
@@ -577,4 +576,4 @@ with gr.Blocks(title="Umoja") as demo:
 
 
 if __name__ == "__main__":
-    demo.launch(show_error=True, css=CUSTOM_CSS)
+    demo.launch(show_error=True)
