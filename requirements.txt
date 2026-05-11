@@ -1,3 +1,5 @@
-pytest
+gradio
 requests
 python-dotenv
+mutagen
+pytest
