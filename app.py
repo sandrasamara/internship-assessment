@@ -350,20 +350,22 @@ body, .gradio-container {
 def process(input_mode, text_input, audio_input, target_language, story_format):
     """Gradio callback — runs the pipeline and returns UI-friendly outputs."""
 
+    def _error_return(msg):
+        error_html = f"<div class='status-message status-error'>{ICONS['error']} <div>{msg}</div></div>"
+        return (
+            gr.update(value=error_html),  # status_box
+            gr.update(visible=False),     # loading_col
+            gr.update(value=""),          # transcript_box
+            gr.update(value=""),          # summary_box
+            gr.update(value=""),          # translation_box
+            gr.update(value=""),          # audio_label
+            gr.update(value=None),        # audio_player
+            gr.update(interactive=True),  # run_btn
+        )
+
     # Validate token
     if not os.environ.get("SUNBIRD_API_TOKEN", "").strip():
-        err = "SUNBIRD_API_TOKEN is not set. Add it to your .env file and restart."
-        error_html = f"<div class='status-message status-error'>{ICONS['error']} <div>{err}</div></div>"
-        return (
-            gr.update(value=error_html),
-            gr.update(visible=False),
-            gr.update(value=""),
-            gr.update(value=""),
-            gr.update(value=""),
-            gr.update(value=""),
-            gr.update(value=None, visible=False),
-            gr.update(interactive=True),
-        )
+        return _error_return("SUNBIRD_API_TOKEN is not set. Add it to your .env file and restart.")
 
     use_audio = ("Audio" in input_mode)
 
@@ -375,17 +377,7 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
     )
 
     if result["error"]:
-        error_html = f"<div class='status-message status-error'>{ICONS['error']} <div>{result['error']}</div></div>"
-        return (
-            gr.update(value=error_html),
-            gr.update(visible=False),
-            gr.update(value=""),
-            gr.update(value=""),
-            gr.update(value=""),
-            gr.update(value=""),
-            gr.update(value=None, visible=False),
-            gr.update(interactive=True),
-        )
+        return _error_return(result["error"])
 
     # ── Build each result panel ────────────────────────────────────────────
     transcript_html = ""
@@ -412,11 +404,13 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
         try:
             r = requests.get(result["audio_url"], timeout=30)
             r.raise_for_status()
-            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
-                tmp.write(r.content)
-                audio_file_path = tmp.name
+            tmp_path = os.path.join(tempfile.gettempdir(), f"umoja_tts_{os.getpid()}.mp3")
+            with open(tmp_path, "wb") as f:
+                f.write(r.content)
+            audio_file_path = tmp_path
+            print(f"[DEBUG] Audio saved to: {audio_file_path} ({os.path.getsize(tmp_path)} bytes)")
         except Exception as e:
-            print(f"Error downloading audio: {e}")
+            print(f"[ERROR] Audio download failed: {e}")
 
     audio_label_html = ""
     if audio_file_path:
@@ -431,19 +425,19 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
 
     # Return order must match OUTPUTS list exactly
     return (
-        gr.update(value=success_html),                                          # status_box
-        gr.update(visible=False),                                               # loading_col
-        gr.update(value=transcript_html),                                       # transcript_box
-        gr.update(value=summary_html),                                          # summary_box
-        gr.update(value=translation_html),                                      # translation_box
-        gr.update(value=audio_label_html),                                      # audio_label
-        gr.update(value=audio_file_path, visible=audio_file_path is not None),  # audio_player
-        gr.update(interactive=True),                                            # run_btn
+        gr.update(value=success_html),        # status_box
+        gr.update(visible=False),             # loading_col
+        gr.update(value=transcript_html),     # transcript_box
+        gr.update(value=summary_html),        # summary_box
+        gr.update(value=translation_html),    # translation_box
+        gr.update(value=audio_label_html),    # audio_label
+        gr.update(value=audio_file_path),     # audio_player — always visible, value drives display
+        gr.update(interactive=True),          # run_btn
     )
 
 
 # ── Build UI ───────────────────────────────────────────────────────────────
-with gr.Blocks(title="Umoja", css=CUSTOM_CSS) as demo:
+with gr.Blocks(title="Umoja") as demo:
 
     gr.HTML(f"""
     <div id="title-banner">
@@ -519,9 +513,10 @@ with gr.Blocks(title="Umoja", css=CUSTOM_CSS) as demo:
             translation_box = gr.HTML(value="", elem_classes="hide-empty")
             audio_label     = gr.HTML(value="", elem_classes="hide-empty")
             audio_player    = gr.Audio(
-                visible=False,
+                visible=True,
                 interactive=False,
                 type="filepath",
+                label="Generated Audio",
                 elem_classes="custom-audio-player",
             )
 
@@ -541,7 +536,7 @@ with gr.Blocks(title="Umoja", css=CUSTOM_CSS) as demo:
             gr.update(value=""),          # clear summary_box
             gr.update(value=""),          # clear translation_box
             gr.update(value=""),          # clear audio_label
-            gr.update(value=None, visible=False),  # hide audio_player
+            gr.update(value=None),        # clear audio_player
             gr.update(interactive=False), # disable run_btn while processing
         )
 
@@ -576,4 +571,4 @@ with gr.Blocks(title="Umoja", css=CUSTOM_CSS) as demo:
 
 
 if __name__ == "__main__":
-    demo.launch(show_error=True)
+    demo.launch(show_error=True, css=CUSTOM_CSS)
