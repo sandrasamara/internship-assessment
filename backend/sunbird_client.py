@@ -1,6 +1,3 @@
-"""
-sunbird_client.py — Thin wrapper around all Sunbird AI API endpoints.
-"""
 import os
 import json
 import time
@@ -9,7 +6,7 @@ from pathlib import Path
 
 BASE_URL = "https://api.sunbird.ai"
 
-# Increased timeouts for free tier API (can be slow)
+
 TIMEOUT_STT = 600  # 10 minutes for audio transcription
 TIMEOUT_DEFAULT = 300  # 5 minutes for other endpoints
 
@@ -93,7 +90,7 @@ def _request_with_retry(
             else:
                 raise
         except requests.RequestException:
-            raise  # Don't retry on other request errors
+            raise  
     
     if last_exception:
         raise last_exception
