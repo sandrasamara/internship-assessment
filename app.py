@@ -24,6 +24,12 @@ CUSTOM_CSS = """
     --text-main: #333333;
     --text-muted: #666666;
 }
+.dark {
+    --bg-panel: #1f2937;
+    --border: #374151;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+}
 body, .gradio-container {
     font-family: 'Inter', sans-serif !important;
 }
@@ -89,30 +95,45 @@ body, .gradio-container {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24px;
-    background: white;
+    gap: 28px;
+    background: var(--bg-panel) !important;
     border-radius: 16px;
-    padding: 60px 40px;
+    padding: 80px 40px;
     text-align: center;
-    border: 1px solid var(--border);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.04);
-    min-height: 280px;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+    min-height: 320px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Responsive loading container for smaller screens */
+@media (max-width: 768px) {
+    .loading-container {
+        padding: 60px 24px;
+        min-height: 280px;
+        gap: 20px;
+    }
 }
 
 /* Single elegant spinner */
 .spinner {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     position: relative;
     display: inline-block;
+    margin: 0 auto;
 }
 
 .spinner::before {
     content: "";
     position: absolute;
-    width: 100%;
-    height: 100%;
-    border: 3px solid rgba(230, 92, 0, 0.1);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px;
+    height: 72px;
+    border: 3.5px solid rgba(230, 92, 0, 0.12);
     border-radius: 50%;
     box-sizing: border-box;
 }
@@ -120,117 +141,207 @@ body, .gradio-container {
 .spinner::after {
     content: "";
     position: absolute;
-    width: 100%;
-    height: 100%;
-    border: 3px solid transparent;
-    border-top: 3px solid #E65C00;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px;
+    height: 72px;
+    border: 3.5px solid transparent;
+    border-top: 3.5px solid #E65C00;
+    border-right: 3.5px solid #F9A826;
     border-radius: 50%;
-    animation: spin-smooth 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    animation: spin-smooth 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
     box-sizing: border-box;
 }
 
 @keyframes spin-smooth {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+        opacity: 1;
+    }
 }
 
+/* Loading text styling */
 .loading-text {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-main);
-    letter-spacing: -0.2px;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main) !important;
+    letter-spacing: -0.3px;
+    margin: 8px 0 0 0;
+    animation: fadeInText 0.6s ease-out forwards;
 }
 
 .loading-subtext {
     font-size: 14px;
-    color: var(--text-muted);
+    color: var(--text-muted) !important;
+    font-weight: 500;
+    line-height: 1.5;
+    margin: 0;
+    animation: fadeInText 0.8s ease-out forwards;
+    animation-delay: 0.2s;
+    opacity: 0;
+}
+
+@keyframes fadeInText {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ──── RESULT DISPLAY IMPROVEMENTS ──── */
 .result-header {
     font-size: 16px;
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 12px;
+    font-weight: 700;
+    color: var(--text-main) !important;
+    margin-bottom: 14px;
     display: flex;
     align-items: center;
     gap: 10px;
+    letter-spacing: -0.3px;
 }
+
 .result-header svg {
-    color: var(--primary);
+    color: var(--primary) !important;
+    flex-shrink: 0;
 }
 
 .result-content {
-    background: white;
-    border: 1px solid var(--border);
+    background: var(--bg-panel) !important;
+    border: 1px solid var(--border) !important;
     border-radius: 12px;
-    padding: 20px;
-    line-height: 1.7;
-    color: var(--text-main);
+    padding: 24px;
+    line-height: 1.8;
+    color: var(--text-main) !important;
     font-size: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
     margin-bottom: 24px;
     white-space: pre-wrap;
+    word-break: break-word;
+    transition: all 0.2s ease;
+}
+
+.result-content:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .result-content-transcript {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-panel) !important;
+    border: 1px solid var(--border) !important;
     border-radius: 12px;
-    padding: 20px;
-    line-height: 1.7;
-    color: var(--text-main);
+    padding: 24px;
+    line-height: 1.8;
+    color: var(--text-main) !important;
     font-size: 14px;
     margin-bottom: 24px;
     white-space: pre-wrap;
+    word-break: break-word;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
+    opacity: 0.9;
+}
+
+.result-content-transcript:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .custom-audio-player {
-    background: rgba(230, 92, 0, 0.05);
-    border: 1px solid rgba(230, 92, 0, 0.15);
+    background: linear-gradient(135deg, rgba(230, 92, 0, 0.08) 0%, rgba(249, 168, 38, 0.04) 100%);
+    border: 1px solid rgba(230, 92, 0, 0.2);
     border-radius: 12px;
-    padding: 24px;
+    padding: 28px;
     margin-top: 24px;
+    box-shadow: 0 2px 8px rgba(230, 92, 0, 0.04);
 }
 
 .audio-label {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--primary);
     margin-bottom: 16px;
     display: flex;
     align-items: center;
     gap: 10px;
+    letter-spacing: -0.3px;
 }
 
 /* ──── STATUS MESSAGES ──── */
 .status-message {
-    padding: 16px 20px;
+    padding: 18px 24px;
     border-radius: 12px;
-    font-weight: 500;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 12px;
     margin-bottom: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    animation: slideInDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-size: 15px;
+    letter-spacing: -0.2px;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .status-success {
-    background: #f0fdf4;
-    color: #166534;
-    border: 1px solid #bbf7d0;
+    background: #f0fdf4 !important;
+    color: #166534 !important;
+    border: 1px solid #bbf7d0 !important;
 }
-.status-success svg {
-    color: #166534;
+
+.status-success div, .status-success svg {
+    color: #166534 !important;
+    flex-shrink: 0;
 }
 
 .status-error {
-    background: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
+    background: #fef2f2 !important;
+    color: #7f1d1d !important;
+    border: 1px solid #fecaca !important;
 }
-.status-error svg {
-    color: #991b1b;
+
+.status-error div, .status-error svg {
+    color: #7f1d1d !important;
+    flex-shrink: 0;
+}
+
+.dark .status-success {
+    background: rgba(22, 101, 52, 0.2) !important;
+    color: #4ade80 !important;
+    border: 1px solid #166534 !important;
+}
+
+.dark .status-success div, .dark .status-success svg {
+    color: #4ade80 !important;
+}
+
+.dark .status-error {
+    background: rgba(127, 29, 29, 0.2) !important;
+    color: #f87171 !important;
+    border: 1px solid #7f1d1d !important;
+}
+
+.dark .status-error div, .dark .status-error svg {
+    color: #f87171 !important;
 }
 
 /* Hide gradio text inputs if any */
@@ -245,13 +356,15 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
     # Validate token
     if not os.environ.get("SUNBIRD_API_TOKEN", "").strip():
         err = "SUNBIRD_API_TOKEN is not set. Add it to your .env file and restart."
+        error_html = f"<div class='status-message status-error'>{ICONS['error']} <div>{err}</div></div>"
         return (
-            f"<div class='status-message status-error'>{ICONS['error']} <div>{err}</div></div>",
+            gr.update(value=error_html),
             gr.update(visible=False),
             gr.update(visible=False),
-            gr.update(visible=False),
-            gr.update(visible=False),
-            gr.update(visible=False),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
             gr.update(visible=False),
             gr.update(interactive=True),
         )
@@ -266,13 +379,15 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
     )
 
     if result["error"]:
+        error_html = f"<div class='status-message status-error'>{ICONS['error']} <div>{result['error']}</div></div>"
         return (
-            f"<div class='status-message status-error'>{ICONS['error']} <div>{result['error']}</div></div>",
+            gr.update(value=error_html),
             gr.update(visible=False),
             gr.update(visible=False),
-            gr.update(visible=False),
-            gr.update(visible=False),
-            gr.update(visible=False),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
             gr.update(visible=False),
             gr.update(interactive=True),
         )
@@ -304,8 +419,8 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
         try:
             r = requests.get(result["audio_url"], timeout=30)
             r.raise_for_status()
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-                tmp.write(r.content)
+            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp:
+                tmp.write(r.content);
                 audio_file_path = tmp.name
         except Exception as e:
             print(f"Error downloading audio: {e}")
@@ -316,16 +431,20 @@ def process(input_mode, text_input, audio_input, target_language, story_format):
     else:
         audio_label_html = ""
 
-    # Return tuple in order of outputs: (status_box, loading_indicator, transcript_box, summary_box, translation_box, audio_label, audio_player, run_btn)
+    # Success message
+    success_html = f"<div class='status-message status-success'>{ICONS['check']} <div>Successfully processed! All results are below.</div></div>"
+
+    # Return tuple in order of outputs: (status_box, loading_col, results_col, transcript_box, summary_box, translation_box, audio_label, audio_player, run_btn)
     return (
-        f"<div class='status-message status-success'>{ICONS['check']} <div>Done! All results are ready below.</div></div>",
-        gr.update(visible=False),  # Hide loading indicator
-        gr.update(value=transcript_html, visible=bool(result["transcript"])),
-        gr.update(value=summary_html, visible=True),
-        gr.update(value=translation_html, visible=True),
-        gr.update(value=audio_label_html, visible=audio_file_path is not None),
-        gr.update(value=audio_file_path, visible=audio_file_path is not None),
-        gr.update(interactive=True),
+        gr.update(value=success_html),  # status_box
+        gr.update(visible=False),  # loading_col
+        gr.update(visible=True),   # results_col
+        gr.update(value=transcript_html),  # transcript_box
+        gr.update(value=summary_html),  # summary_box
+        gr.update(value=translation_html),  # translation_box
+        gr.update(value=audio_label_html),  # audio_label
+        gr.update(value=audio_file_path, visible=audio_file_path is not None),  # audio_player
+        gr.update(interactive=True),  # run_btn
     )
 
 
@@ -385,25 +504,26 @@ with gr.Blocks(title="Umoja") as demo:
             status_box = gr.HTML("<div style='color: var(--text-muted); padding-top: 10px;'><em>Results will appear here after you click Run.</em></div>")
             
             # Loading indicator (shown during processing)
-            loading_indicator = gr.HTML(
-                """<div class="loading-container">
-                   <div class="spinner"></div>
-                   <div class="loading-text">Processing your content...</div>
-                   <div class="loading-subtext">This may take a moment ......</div>
-                   </div>""",
-                visible=False
-            )
+            with gr.Column(visible=False) as loading_col:
+                gr.HTML(
+                    """<div class="loading-container">
+                       <div class="spinner"></div>
+                       <div class="loading-text">Processing your content...</div>
+                       <div class="loading-subtext">This may take a moment ......</div>
+                       </div>"""
+                )
 
-            transcript_box = gr.HTML(visible=False, elem_classes="hide-empty")
-            summary_box = gr.HTML(visible=False, elem_classes="hide-empty")
-            translation_box = gr.HTML(visible=False, elem_classes="hide-empty")
-            audio_label = gr.HTML(visible=False, elem_classes="hide-empty")
-            audio_player = gr.Audio(
-                visible=False, 
-                interactive=False,
-                type="filepath",
-                elem_classes="custom-audio-player"
-            )
+            with gr.Column(visible=False) as results_col:
+                transcript_box = gr.HTML(elem_classes="hide-empty")
+                summary_box = gr.HTML(elem_classes="hide-empty")
+                translation_box = gr.HTML(elem_classes="hide-empty")
+                audio_label = gr.HTML(elem_classes="hide-empty")
+                audio_player = gr.Audio(
+                    visible=False, 
+                    interactive=False,
+                    type="filepath",
+                    elem_classes="custom-audio-player"
+                )
 
     # Wire up visibility toggle 
     def toggle_input(mode):
@@ -414,15 +534,12 @@ with gr.Blocks(title="Umoja") as demo:
 
     #  Show loading state, then run process
     def show_loading():
-        """Pre-processing callback to show loading indicator."""
+        """Pre-processing callback to show loading indicator with enhanced styling."""
         return (
-            gr.update(value="<div style='text-align:center; color:var(--text-muted); padding: 12px;'><em>Starting...</em></div>"),  # status_box
-            gr.update(visible=True),  # loading_indicator
-            gr.update(visible=False),  # transcript_box
-            gr.update(visible=False),  # summary_box
-            gr.update(visible=False),  # translation_box
-            gr.update(visible=False),  # audio_label
-            gr.update(visible=False),  # audio_player
+            gr.update(value="<div style='text-align:center; color:var(--text-muted); padding: 8px 0; opacity: 0.9;'></div>"),  # status_box
+            gr.update(visible=True),   # loading_col
+            gr.update(visible=False),  # results_col
+            gr.update(interactive=False) # run_btn
         )
     
     
@@ -430,12 +547,9 @@ with gr.Blocks(title="Umoja") as demo:
         fn=show_loading,
         outputs=[
             status_box,
-            loading_indicator,
-            transcript_box,
-            summary_box,
-            translation_box,
-            audio_label,
-            audio_player,
+            loading_col,
+            results_col,
+            run_btn
         ],
         show_progress="hidden"
     ).then(
@@ -443,7 +557,8 @@ with gr.Blocks(title="Umoja") as demo:
         inputs=[input_mode, text_input, audio_input, target_language, story_format],
         outputs=[
             status_box, 
-            loading_indicator, 
+            loading_col,
+            results_col,
             transcript_box, 
             summary_box, 
             translation_box, 
